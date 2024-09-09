@@ -4,6 +4,7 @@ import { mapGetters } from 'vuex';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAlert } from 'dashboard/composables';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
+import { useFilter } from 'shared/composables/useFilter';
 import VirtualList from 'vue-virtual-scroll-list';
 
 import ChatListHeader from './ChatListHeader.vue';
@@ -16,7 +17,6 @@ import filterQueryGenerator from '../helper/filterQueryGenerator.js';
 import AddCustomViews from 'dashboard/routes/dashboard/customviews/AddCustomViews.vue';
 import DeleteCustomViews from 'dashboard/routes/dashboard/customviews/DeleteCustomViews.vue';
 import ConversationBulkActions from './widgets/conversation/conversationBulkActions/Index.vue';
-import filterMixin from 'shared/mixins/filterMixin';
 import languages from 'dashboard/components/widgets/conversation/advancedFilterItems/languages';
 import countries from 'shared/constants/countries';
 import { generateValuesForEditCustomViews } from 'dashboard/helper/customViewsHelper';
@@ -41,7 +41,6 @@ export default {
     IntersectionObserver,
     VirtualList,
   },
-  mixins: [filterMixin],
   provide() {
     return {
       // Actions to be performed on virtual list item and context menu.
@@ -91,6 +90,15 @@ export default {
 
     const conversationListRef = ref(null);
 
+    const {
+      setFilterAttributes,
+      initializeStatusAndAssigneeFilterToModal,
+      initializeInboxTeamAndLabelFilterToModal,
+    } = useFilter({
+      filteri18nKey: 'FILTER',
+      attributeModel: 'conversation_attribute',
+    });
+
     const getKeyboardListenerParams = () => {
       const allConversations = conversationListRef.value.querySelectorAll(
         'div.conversations-list div.conversation'
@@ -109,43 +117,52 @@ export default {
         lastConversationIndex,
       };
     };
-    const handlePreviousConversation = () => {
-      const { allConversations, activeConversationIndex } =
-        getKeyboardListenerParams();
-      if (activeConversationIndex === -1) {
-        allConversations[0].click();
-      }
-      if (activeConversationIndex >= 1) {
-        allConversations[activeConversationIndex - 1].click();
-      }
-    };
-    const handleNextConversation = () => {
+    const handleConversationNavigation = direction => {
       const {
         allConversations,
         activeConversationIndex,
         lastConversationIndex,
       } = getKeyboardListenerParams();
-      if (activeConversationIndex === -1) {
-        allConversations[lastConversationIndex].click();
-      } else if (activeConversationIndex < lastConversationIndex) {
-        allConversations[activeConversationIndex + 1].click();
+
+      // Determine the new index based on the direction
+      const newIndex =
+        direction === 'previous'
+          ? activeConversationIndex - 1
+          : activeConversationIndex + 1;
+
+      // Check if the new index is within the valid range
+      if (
+        allConversations.length > 0 &&
+        newIndex >= 0 &&
+        newIndex <= lastConversationIndex
+      ) {
+        // Click the conversation at the new index
+        allConversations[newIndex].click();
+      } else if (allConversations.length > 0) {
+        // If the new index is out of range, click the first or last conversation based on the direction
+        const fallbackIndex =
+          direction === 'previous' ? 0 : lastConversationIndex;
+        allConversations[fallbackIndex].click();
       }
     };
     const keyboardEvents = {
       'Alt+KeyJ': {
-        action: () => handlePreviousConversation(),
+        action: () => handleConversationNavigation('previous'),
         allowOnFocusedInput: true,
       },
       'Alt+KeyK': {
-        action: () => handleNextConversation(),
+        action: () => handleConversationNavigation('next'),
         allowOnFocusedInput: true,
       },
     };
-    useKeyboardEvents(keyboardEvents, conversationListRef);
+    useKeyboardEvents(keyboardEvents);
 
     return {
       uiSettings,
       conversationListRef,
+      setFilterAttributes,
+      initializeStatusAndAssigneeFilterToModal,
+      initializeInboxTeamAndLabelFilterToModal,
     };
   },
   data() {
@@ -859,6 +876,25 @@ export default {
     },
     onContextMenuToggle(state) {
       this.isContextMenuOpen = state;
+    },
+    initializeExistingFilterToModal() {
+      const statusFilter = this.initializeStatusAndAssigneeFilterToModal(
+        this.activeStatus,
+        this.currentUserDetails,
+        this.activeAssigneeTab
+      );
+      if (statusFilter) {
+        this.appliedFilter.push(statusFilter);
+      }
+
+      const otherFilters = this.initializeInboxTeamAndLabelFilterToModal(
+        this.conversationInbox,
+        this.inbox,
+        this.teamId,
+        this.activeTeam,
+        this.label
+      );
+      this.appliedFilter.push(...otherFilters);
     },
   },
 };
