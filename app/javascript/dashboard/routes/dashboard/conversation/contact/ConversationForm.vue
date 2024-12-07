@@ -445,10 +445,10 @@ export default {
                 @blur="v$.message.$touch"
               >
                 <template #footer>
-                  <MessageSignatureMissingAlert
+                  <!-- <MessageSignatureMissingAlert
                     v-if="isSignatureEnabledForInbox && !messageSignature"
                     class="!mx-0 mb-1"
-                  />
+                  /> -->
                   <div v-if="isAnEmailInbox" class="mt-px mb-3">
                     <woot-button
                       v-tooltip.top-end="signatureToggleTooltip"

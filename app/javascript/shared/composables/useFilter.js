@@ -105,6 +105,18 @@ export const useFilter = ({ filteri18nKey, attributeModel }) => {
             id: activeStatus,
             name: $t(`CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${activeStatus}.TEXT`),
           },
+          // {
+          //   id: wootConstants.STATUS_TYPE.OPEN,
+          //   name: $t(
+          //     `CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${wootConstants.STATUS_TYPE.OPEN}.TEXT`
+          //   ),
+          // },
+          // {
+          //   id: wootConstants.STATUS_TYPE.PENDING,
+          //   name: $t(
+          //     `CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${wootConstants.STATUS_TYPE.PENDING}.TEXT`
+          //   ),
+          // },
         ],
         query_operator: 'and',
         custom_attribute_type: '',

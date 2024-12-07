@@ -340,13 +340,13 @@ export default {
         v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
         :conversation-id="conversationId"
       />
-      <AIAssistanceButton
+      <!-- <AIAssistanceButton
         v-if="!isFetchingAppIntegrations"
         :conversation-id="conversationId"
         :is-private-note="isOnPrivateNote"
         :message="message"
         @replaceText="replaceText"
-      />
+      /> -->
       <transition name="modal-fade">
         <div
           v-show="$refs.uploadRef && $refs.uploadRef.dropActive"
